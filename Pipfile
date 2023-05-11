@@ -1,0 +1,17 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+tweepy = "*"
+psycopg2 = "*"
+py-staticmaps = {extras = ["cairo"], version = "*"}
+geopy = "*"
+requests = "*"
+pytz = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.11"
