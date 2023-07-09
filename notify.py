@@ -1,4 +1,4 @@
-def notify(cur, flight, origin_airport, destination_airport, twitter_details=None):
+def notify(cur, flight, origin_airport, destination_airport, twitter_details=None, hours_since=None):
     #Generate Flight Map Image
     from flight_map import create_flight_map
     origin_coords = (origin_airport['lat'], origin_airport['lon'])
@@ -19,7 +19,7 @@ def notify(cur, flight, origin_airport, destination_airport, twitter_details=Non
         landed_time_msg = (f"Apx. flt. time {int(minutes)} {min_syntax}.")
 
     #Start Secondary Output Creation, Miles and Fuel
-    second_message = ""
+    second_message = None
 
     if flight['origin'] != flight['destination']:
         from geopy.distance import geodesic
@@ -48,7 +48,8 @@ def notify(cur, flight, origin_airport, destination_airport, twitter_details=Non
     destination_location =f"{destination_airport['municipality']}, {destination_airport['region']}, {destination_airport['iso_country']}"
 
     #Generate Final Flight Message
-    message = f"""Flew from {origin_location} to {destination_location} yesterday.\n{landed_time_msg}\n\n{second_message}"""
+    time_ago_wording = "24 hours ago" if hours_since <= 25 else f"on {flight['landing_time'].strftime('%-m/%-d')}"
+    message = f"""Flew from {origin_location} to {destination_location} {time_ago_wording}.\n{landed_time_msg}"""
 
     print(message)
 
@@ -67,7 +68,14 @@ def notify(cur, flight, origin_airport, destination_airport, twitter_details=Non
             access_token=twitter_details['access_token'],
             access_token_secret=twitter_details['access_token_secret']
         )
-        v2_tweet_api.create_tweet(text=message, media_ids=[twitter_media_map_obj.media_id])
-
+        try:
+            tweet_rsp = v2_tweet_api.create_tweet(text=message, media_ids=[twitter_media_map_obj.media_id])
+            tweet_id = tweet_rsp.data['id']
+            if second_message:
+                v2_tweet_api.create_tweet(text=second_message, in_reply_to_tweet_id=tweet_id)
+        except Exception as e:
+            if tweet_rsp.status_code == 429:
+                print("x-rate-limit-reset:", tweet_rsp['x-rate-limit-reset'])
+            raise(e)
     import os
     os.remove(flight_map_image_name)
