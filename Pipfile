@@ -6,12 +6,14 @@ name = "pypi"
 [packages]
 tweepy = "*"
 psycopg2 = "*"
-py-staticmaps = {extras = ["cairo"], version = "*"}
 geopy = "*"
 requests = "*"
 pytz = "*"
+py-staticmaps = "*"
+pycairo = "*"
+numpy = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.11"
+python_version = "3.13"

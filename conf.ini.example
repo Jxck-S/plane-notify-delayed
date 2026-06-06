@@ -1,0 +1,8 @@
+[DB]
+DB= tracking
+USER=
+PW=
+PORT= 5432
+HOST=
+[OPTIONS]
+FUEL_CO2 = True
