@@ -1,20 +1,46 @@
 # plane-notify-delayed
-An extension to plane-notify, that posts flights delayed to meet demands of Mr.Musk at Twitter ;(
 
-- After the [2022 Decemeber Twitter massacre](https://en.wikipedia.org/wiki/December_2022_Twitter_suspensions) of ElonJet and news reporters.
-- Twitter announced that "we will remove any tweets or accounts that share someone's live location"
-- Elon Musk - "Any account doxxing real-time location info of anyone will be suspended, as it is a physical safety violation. This includes posting links to sites with real-time location info. Posting locations someone traveled to on a slightly delayed basis isn't a safety problem, so is ok."
-- So we arrived here (plane-notify-delayed), as musk says we must delay (atleast on Twitter lol). other platforms ASAP still
+An extension to [plane-notify](https://github.com/Jxck-S/plane-notify) that posts flights on a delay to comply with Twitter/X location policies. See [HISTORY.md](HISTORY.md) for background.
 
+## How it works
 
-## Flow
-Connects to the postgres database that plane-notify uses, watches for aircraft that have Twitter accounts/that have delay on, checks for new flights which have reached 24 hours old as of landing.
+Connects to the PostgreSQL database used by plane-notify, watches for aircraft that have Twitter accounts with delay mode enabled, and posts flights once they are at least 24 hours old (up to 72 hours) as of landing.
 
+## Requirements
 
+- Python 3.13+
+- PostgreSQL database populated by [plane-notify](https://github.com/Jxck-S/plane-notify)
+- `flight_static_maps` (private local dependency — must be present at project root)
+- Dependencies via Pipfile: `pipenv install`
 
+## Configuration
 
+Copy `conf.ini.example` to `conf.ini` and fill in your database credentials:
 
+```ini
+[DB]
+DB= tracking
+USER= your_db_user
+PW= your_db_password
+PORT= 5432
+HOST= your_db_host
 
+[OPTIONS]
+FUEL_CO2 = True
+```
 
-#### Easter eggs
+## Running
+
+```bash
+python -m src
+```
+
+Run from the project root so `conf.ini` and `start_at_ids.json` are resolved correctly.
+
+## start_at_ids.json
+
+On startup the app loads this file to know the last posted flight ID per aircraft, then clears it so stale IDs aren't reused after a crash or restart. It is gitignored — it will be created automatically on first run.
+
+## Easter eggs
+
 - Alt text :)
