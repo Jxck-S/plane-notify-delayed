@@ -9,7 +9,7 @@ psycopg2 = "*"
 geopy = "*"
 requests = "*"
 pytz = "*"
-py-staticmaps = "*"
+py-staticmaps = {git = "https://github.com/Jxck-S/py-staticmaps.git"}
 pycairo = "*"
 numpy = "*"
 
