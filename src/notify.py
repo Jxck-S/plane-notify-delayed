@@ -1,6 +1,6 @@
 def notify(cur, flight, origin_airport, destination_airport, twitter_details=None, hours_since=None):
     #Generate Flight Map Image
-    from flight_map import create_flight_map
+    from .flight_map import create_flight_map
     origin_coords = (origin_airport['lat'], origin_airport['lon'])
     destination_coords = (destination_airport['lat'], destination_airport['lon'])
     flight_map_image_name = f"{flight['reg']}_{flight['id']}_flight_map.png"
@@ -30,12 +30,12 @@ def notify(cur, flight, origin_airport, destination_airport, twitter_details=Non
     conf = configparser.ConfigParser()
     conf.read('conf.ini')
     if conf.getboolean("OPTIONS", "FUEL_CO2"):
-        from aircraft_type import get_ac_type
+        from .aircraft_type import get_ac_type
         ac_type = get_ac_type(cur, flight['reg'])
         if ac_type is not None:
             print("Running fuel info calc")
             flight_time_min = flight_time.total_seconds() / 60
-            from fuel_calc import fuel_calculation, fuel_message
+            from .fuel_calc import fuel_calculation, fuel_message
             fuel_info = fuel_calculation(cur ,ac_type, flight_time_min)
             if fuel_info is not None:
                 if second_message:

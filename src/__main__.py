@@ -3,8 +3,8 @@ import psycopg2.extras
 import time
 import datetime
 import configparser
-from airport import get_airport_by_icao
-from notify import notify
+from .airport import get_airport_by_icao
+from .notify import notify
 
 conf = configparser.ConfigParser()
 conf.read("conf.ini")
