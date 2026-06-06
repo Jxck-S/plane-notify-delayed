@@ -41,6 +41,3 @@ Run from the project root so `conf.ini` and `start_at_ids.json` are resolved cor
 
 On startup the app loads this file to know the last posted flight ID per aircraft, then clears it so stale IDs aren't reused after a crash or restart. It is gitignored — it will be created automatically on first run.
 
-## Easter eggs
-
-- Alt text :)
