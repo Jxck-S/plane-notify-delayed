@@ -1,6 +1,4 @@
 conf.ini
-start_at_ids.json
 flight_static_maps/
 __pycache__/
 *.png
-conf.ini
