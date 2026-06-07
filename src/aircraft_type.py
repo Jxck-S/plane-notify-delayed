@@ -1,18 +1,20 @@
 from typing import Optional
 
+from . import db
 
-def get_ac_type(cursor, reg: str) -> Optional[str]:
+
+def get_ac_type(reg: str) -> Optional[str]:
     """Fetch aircraft ICAO type from the database by registration number.
 
     Args:
-        cursor: Database cursor.
         reg: Aircraft registration (tail number).
 
     Returns:
         ICAO aircraft type code, or None if not found.
     """
     sql = """SELECT icaotype FROM deps.adsbx_ac aa WHERE reg = %s"""
-    cursor.execute(sql, (reg,))
-    if cursor.rowcount > 0:
-        return cursor.fetchone()["icaotype"]
+    with db.cursor() as cur:
+        cur.execute(sql, (reg,))
+        if cur.rowcount > 0:
+            return cur.fetchone()["icaotype"]
     return None

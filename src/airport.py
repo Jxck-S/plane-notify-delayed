@@ -1,11 +1,12 @@
 from typing import Optional
 
+from . import db
 
-def get_airport_by_icao(cursor, icao: str) -> Optional[dict]:
+
+def get_airport_by_icao(icao: str) -> Optional[dict]:
     """Fetch airport details by ICAO/GPS code.
 
     Args:
-        cursor: Database cursor.
         icao: ICAO/GPS code of the airport.
 
     Returns:
@@ -22,9 +23,10 @@ def get_airport_by_icao(cursor, icao: str) -> Optional[dict]:
         WHERE oaa.gps_code = %s AND oaa.iso_region = oar.code
         LIMIT 1;
     """
-    cursor.execute(sql, (icao,))
-    if cursor.rowcount == 0:
-        return None
-    airport = dict(cursor.fetchone())
+    with db.cursor() as cur:
+        cur.execute(sql, (icao,))
+        if cur.rowcount == 0:
+            return None
+        airport = dict(cur.fetchone())
     airport["icao"] = airport.pop("gps_code")
     return airport

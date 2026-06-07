@@ -1,5 +1,7 @@
 from typing import Optional
 
+from . import db
+
 GALLONS_TO_KG = 3.04
 GALLONS_TO_LITERS = 3.78541
 KG_TO_LBS = 2.20462
@@ -8,26 +10,26 @@ KG_TO_TONS = 907.185
 MINUTES_PER_HOUR = 60
 
 
-def get_avg_fuel_price(cursor) -> Optional[float]:
+def get_avg_fuel_price() -> Optional[float]:
     """Fetch average fuel price per gallon from the database.
 
     Returns:
         Average fuel price as float, or None if unavailable.
     """
     sql = """SELECT cost::numeric::float FROM "plane-notify".fuel"""
-    cursor.execute(sql)
-    if cursor.rowcount > 0:
-        cost = cursor.fetchone()["cost"]
-        print(f"AVG fuel cost per gallon is ${cost}")
-        return cost
+    with db.cursor() as cur:
+        cur.execute(sql)
+        if cur.rowcount > 0:
+            cost = cur.fetchone()["cost"]
+            print(f"AVG fuel cost per gallon is ${cost}")
+            return cost
     return None
 
 
-def fuel_calculation(cursor, aircraft_icao_type: str, minutes: float) -> Optional[dict]:
+def fuel_calculation(aircraft_icao_type: str, minutes: float) -> Optional[dict]:
     """Calculate fuel usage, price, and CO2 output for a flight.
 
     Args:
-        cursor: Database cursor.
         aircraft_icao_type: ICAO aircraft type code.
         minutes: Flight duration in minutes.
 
@@ -35,13 +37,13 @@ def fuel_calculation(cursor, aircraft_icao_type: str, minutes: float) -> Optiona
         Dict with fuel stats, or None if aircraft type is unknown.
     """
     sql = """SELECT galph FROM "plane-notify".icao_type_info WHERE icao_code = %s"""
-    cursor.execute(sql, (aircraft_icao_type,))
-    if cursor.rowcount == 0:
-        print("Can't calculate fuel info: unknown aircraft ICAO type")
-        return None
-
-    galph = cursor.fetchone()["galph"]
-    avg_fuel_price_per_gallon = get_avg_fuel_price(cursor)
+    with db.cursor() as cur:
+        cur.execute(sql, (aircraft_icao_type,))
+        if cur.rowcount == 0:
+            print("Can't calculate fuel info: unknown aircraft ICAO type")
+            return None
+        galph = cur.fetchone()["galph"]
+    avg_fuel_price_per_gallon = get_avg_fuel_price()
     fuel_used_gal = galph * (minutes / MINUTES_PER_HOUR)
     fuel_used_kg = fuel_used_gal * GALLONS_TO_KG
     co2_tons = (fuel_used_kg * KG_TO_CO2_TONS_FACTOR) / KG_TO_TONS

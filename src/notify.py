@@ -13,7 +13,6 @@ MI_TO_NM = 1.150779448
 
 
 def notify(
-    cur,
     flight: dict,
     origin_airport: dict,
     destination_airport: dict,
@@ -23,7 +22,6 @@ def notify(
     """Post flight details to Twitter and print a notification summary.
 
     Args:
-        cur: Database cursor.
         flight: Flight data dictionary.
         origin_airport: Origin airport details from get_airport_by_icao().
         destination_airport: Destination airport details from get_airport_by_icao().
@@ -61,11 +59,11 @@ def notify(
         )
 
     if config.FUEL_CO2:
-        ac_type = get_ac_type(cur, flight["reg"])
+        ac_type = get_ac_type(flight["reg"])
         if ac_type is not None:
             print("Running fuel info calc")
             flight_time_min = flight_time.total_seconds() / 60
-            fuel_info = fuel_calculation(cur, ac_type, flight_time_min)
+            fuel_info = fuel_calculation(ac_type, flight_time_min)
             if fuel_info is not None:
                 fuel_line = fuel_message(fuel_info)
                 second_message = f"{second_message}\n{fuel_line}" if second_message else fuel_line
