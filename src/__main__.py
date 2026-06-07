@@ -1,4 +1,3 @@
-import configparser
 import datetime
 import json
 import time
@@ -6,20 +5,18 @@ import time
 import psycopg2
 import psycopg2.extras
 
+from . import config
 from .airport import get_airport_by_icao
 from .notify import notify
 
 SLEEP_INTERVAL_SECONDS = 5 * 60
 
-conf = configparser.ConfigParser()
-conf.read("conf.ini")
-
 conn = psycopg2.connect(
-    dbname=conf.get("DB", "DB"),
-    user=conf.get("DB", "USER"),
-    password=conf.get("DB", "PW"),
-    host=conf.get("DB", "HOST"),
-    port=conf.get("DB", "PORT"),
+    dbname=config.DB_NAME,
+    user=config.DB_USER,
+    password=config.DB_PASSWORD,
+    host=config.DB_HOST,
+    port=config.DB_PORT,
 )
 
 # Load startup IDs to allow tweeting missed flights on restart.

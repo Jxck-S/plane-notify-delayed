@@ -1,10 +1,10 @@
-import configparser
 import os
 from typing import Optional
 
 import tweepy
 from geopy.distance import geodesic
 
+from . import config
 from .aircraft_type import get_ac_type
 from .flight_map import create_flight_map
 from .fuel_calc import fuel_calculation, fuel_message
@@ -60,9 +60,7 @@ def notify(
             f" flight from {origin_code} to {dest_code}"
         )
 
-    conf = configparser.ConfigParser()
-    conf.read("conf.ini")
-    if conf.getboolean("OPTIONS", "FUEL_CO2"):
+    if config.FUEL_CO2:
         ac_type = get_ac_type(cur, flight["reg"])
         if ac_type is not None:
             print("Running fuel info calc")
