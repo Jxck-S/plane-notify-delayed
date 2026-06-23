@@ -85,6 +85,12 @@ while True:
             for new_flight in results:
                 new_flight = dict(new_flight)
                 new_flight["reg"] = reg
+                # takeoff_time/landing_time are stored as naive UTC; attach tzinfo so
+                # they can be compared against the timezone-aware "now" and each other.
+                for time_field in ("takeoff_time", "landing_time"):
+                    value = new_flight[time_field]
+                    if value is not None and value.tzinfo is None:
+                        new_flight[time_field] = value.replace(tzinfo=datetime.timezone.utc)
                 since_landing = (
                     datetime.datetime.now(datetime.timezone.utc) - new_flight["landing_time"]
                 )
