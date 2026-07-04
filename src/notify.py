@@ -1,10 +1,9 @@
 import os
 from typing import Optional
 
-import tweepy
 from geopy.distance import geodesic
 
-from . import config
+from . import config, x_client
 from .aircraft_type import get_ac_type
 from .flight_map import create_flight_map
 from .fuel_calc import fuel_calculation, fuel_message
@@ -16,16 +15,16 @@ def notify(
     flight: dict,
     origin_airport: dict,
     destination_airport: dict,
-    twitter_details: Optional[dict] = None,
+    x_details: Optional[dict] = None,
     hours_since: Optional[int] = None,
 ) -> None:
-    """Post flight details to Twitter and print a notification summary.
+    """Post flight details to X and print a notification summary.
 
     Args:
         flight: Flight data dictionary.
         origin_airport: Origin airport details from get_airport_by_icao().
         destination_airport: Destination airport details from get_airport_by_icao().
-        twitter_details: Twitter API credentials dict, or None to skip posting.
+        x_details: X API credentials dict, or None to skip posting.
         hours_since: Hours since the flight landed, used for message wording.
     """
     origin_coords = (origin_airport["lat"], origin_airport["lon"])
@@ -83,33 +82,15 @@ def notify(
 
     print(message)
 
-    if twitter_details:
-        print(f"Posting flight to @{twitter_details['@']}")
-        auth = tweepy.OAuthHandler(twitter_details["key"], twitter_details["secret"])
-        auth.set_access_token(twitter_details["access_token"], twitter_details["access_token_secret"])
-        v1_tweet_api = tweepy.API(auth, wait_on_rate_limit=True)
-        twitter_media_map_obj = v1_tweet_api.media_upload(flight_map_image_name)
-        alt_text = f"Reg: {flight['reg']} Flight Map"
-        v1_tweet_api.create_media_metadata(
-            media_id=twitter_media_map_obj.media_id,
-            alt_text=alt_text,
-        )
-        v2_tweet_api = tweepy.Client(
-            consumer_key=twitter_details["key"],
-            consumer_secret=twitter_details["secret"],
-            access_token=twitter_details["access_token"],
-            access_token_secret=twitter_details["access_token_secret"],
-        )
+    if x_details:
+        print(f"Posting flight to @{x_details['@']}")
         try:
-            tweet_rsp = v2_tweet_api.create_tweet(
-                text=message, media_ids=[twitter_media_map_obj.media_id]
-            )
-            tweet_id = tweet_rsp.data["id"]
+            alt_text = f"Reg: {flight['reg']} Flight Map"
+            media_id = x_client.upload_media(x_details, flight_map_image_name, alt_text)
+            post_id = x_client.create_post(x_details, message, media_ids=[media_id])
             if second_message:
-                v2_tweet_api.create_tweet(text=second_message, in_reply_to_tweet_id=tweet_id)
-        except tweepy.HTTPException as e:
-            if e.response is not None and e.response.status_code == 429:
-                print("x-rate-limit-reset:", e.response.headers.get("x-rate-limit-reset"))
-            raise
-
-    os.remove(flight_map_image_name)
+                x_client.create_post(x_details, second_message, in_reply_to_post_id=post_id)
+        finally:
+            os.remove(flight_map_image_name)
+    else:
+        os.remove(flight_map_image_name)

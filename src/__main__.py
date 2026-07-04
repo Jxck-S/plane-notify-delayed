@@ -8,7 +8,7 @@ from .notify import notify
 
 SLEEP_INTERVAL_SECONDS = 5 * 60
 
-# Load startup IDs to allow tweeting missed flights on restart.
+# Load startup IDs to allow posting missed flights on restart.
 try:
     with open("start_at_ids.json") as file:
         latest_flights = json.load(file)
@@ -27,7 +27,7 @@ while True:
         cur.execute("""
             SELECT a.reg, COALESCE(f_max.id, -1) AS latest_flight_id
             FROM "plane-notify".aircraft a
-            JOIN "plane-notify".twitter_accounts ta ON a.twitter_acc_id = ta.id
+            JOIN "plane-notify".x_accounts ta ON a.x_acc_id = ta.id
             JOIN (
                 SELECT reg, MAX(id) AS id
                 FROM "plane-notify".flights
@@ -72,15 +72,15 @@ while True:
 
             sql = """
                 SELECT ta."@", tck."key", tck.secret, ta.access_token, ta.access_token_secret
-                FROM "plane-notify".twitter_accounts ta,
-                     "plane-notify".twitter_consumer_keys tck,
+                FROM "plane-notify".x_accounts ta,
+                     "plane-notify".x_consumer_keys tck,
                      "plane-notify".aircraft a
-                WHERE ta.id = a.twitter_acc_id
+                WHERE ta.id = a.x_acc_id
                 AND a.reg = %(reg)s
                 AND ta.api_id = tck.id
             """
             cur.execute(sql, {"reg": reg})
-            twitter_details = cur.fetchone()
+            x_details = cur.fetchone()
 
             for new_flight in results:
                 new_flight = dict(new_flight)
@@ -102,7 +102,7 @@ while True:
                 )
                 origin_airport = get_airport_by_icao(new_flight["origin"])
                 destination_airport = get_airport_by_icao(new_flight["destination"])
-                notify(new_flight, origin_airport, destination_airport, twitter_details, hours)
+                notify(new_flight, origin_airport, destination_airport, x_details, hours)
                 latest_flights[reg] = new_flight["id"]
 
     check_count += 1
