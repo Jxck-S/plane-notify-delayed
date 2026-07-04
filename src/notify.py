@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import Optional
 
@@ -7,6 +8,8 @@ from . import config, x_client
 from .aircraft_type import get_ac_type
 from .flight_map import create_flight_map
 from .fuel_calc import fuel_calculation, fuel_message
+
+logger = logging.getLogger(__name__)
 
 MI_TO_NM = 1.150779448
 
@@ -60,7 +63,7 @@ def notify(
     if config.FUEL_CO2:
         ac_type = get_ac_type(flight["reg"])
         if ac_type is not None:
-            print("Running fuel info calc")
+            logger.info("Running fuel info calc")
             flight_time_min = flight_time.total_seconds() / 60
             fuel_info = fuel_calculation(ac_type, flight_time_min)
             if fuel_info is not None:
@@ -80,10 +83,10 @@ def notify(
     )
     message = f"Flew from {origin_location} to {destination_location} {time_ago_wording}.\n{landed_time_msg}"
 
-    print(message)
+    logger.info(message)
 
     if x_details:
-        print(f"Posting flight to @{x_details['@']}")
+        logger.info("Posting flight to @%s", x_details["@"])
         try:
             alt_text = f"Reg: {flight['reg']} Flight Map"
             media_id = x_client.upload_media(x_details, flight_map_image_name, alt_text)

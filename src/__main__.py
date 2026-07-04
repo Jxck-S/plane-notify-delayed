@@ -1,10 +1,15 @@
 import datetime
 import json
+import logging
 import time
 
 from . import db
 from .airport import get_airport_by_icao
+from .logging_config import configure_logging
 from .notify import notify
+
+configure_logging()
+logger = logging.getLogger(__name__)
 
 SLEEP_INTERVAL_SECONDS = 5 * 60
 
@@ -47,10 +52,9 @@ while True:
             if reg not in current_regs:
                 latest_flights.pop(reg)
 
-        print(f"Latest Flights: {latest_flights}")
+        logger.info("Latest Flights: %s", latest_flights)
 
         for reg, latest_id in list(latest_flights.items()):
-            print(f"Checking {reg} for flights to post > {latest_id}:", end=" ")
             sql = """
                 SELECT
                     f.id, f.callsign, f.origin, f.takeoff_confirmed,
@@ -64,11 +68,14 @@ while True:
             """
             cur.execute(sql, {"reg": reg, "latest_id": latest_id})
             if cur.rowcount == 0:
-                print("None new")
+                logger.info("Checking %s for flights to post > %s: none new", reg, latest_id)
                 continue
 
             results = cur.fetchall()
-            print(f"{len(results)} new flights")
+            logger.info(
+                "Checking %s for flights to post > %s: %d new flights",
+                reg, latest_id, len(results),
+            )
 
             sql = """
                 SELECT ta."@", tck."key", tck.secret, ta.access_token, ta.access_token_secret
@@ -96,9 +103,10 @@ while True:
                 )
                 hours, remainder = divmod(int(since_landing.total_seconds()), 3600)
                 minutes = remainder // 60
-                print(
-                    f"\t New {new_flight['id']}, {new_flight['origin']} -> {new_flight['destination']},"
-                    f" landed {hours} hours : {minutes} mins ago"
+                logger.info(
+                    "New %s, %s -> %s, landed %d hours : %d mins ago",
+                    new_flight["id"], new_flight["origin"], new_flight["destination"],
+                    hours, minutes,
                 )
                 origin_airport = get_airport_by_icao(new_flight["origin"])
                 destination_airport = get_airport_by_icao(new_flight["destination"])
@@ -108,5 +116,5 @@ while True:
     check_count += 1
     # Rollback to keep the connection clean for the next iteration.
     db.conn.rollback()
-    print(f"Sleeping.... checks: {check_count}")
+    logger.info("Sleeping.... checks: %d", check_count)
     time.sleep(SLEEP_INTERVAL_SECONDS)

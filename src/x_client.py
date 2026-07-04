@@ -1,7 +1,10 @@
+import logging
 from typing import Optional
 
 import requests
 from requests_oauthlib import OAuth1
+
+logger = logging.getLogger(__name__)
 
 MEDIA_UPLOAD_URL = "https://api.x.com/2/media/upload"
 MEDIA_METADATA_URL = "https://api.x.com/2/media/metadata"
@@ -24,8 +27,8 @@ def _raise_for_status_with_rate_limit_logging(resp: requests.Response) -> None:
         resp.raise_for_status()
     except requests.HTTPError:
         if resp.status_code == 429:
-            print("x-rate-limit-reset:", resp.headers.get("x-rate-limit-reset"))
-        print(f"X API error {resp.status_code}: {resp.text[:500]}")
+            logger.warning("x-rate-limit-reset: %s", resp.headers.get("x-rate-limit-reset"))
+        logger.error("X API error %s: %s", resp.status_code, resp.text[:500])
         raise
 
 

@@ -1,6 +1,9 @@
+import logging
 from typing import Optional
 
 from . import db
+
+logger = logging.getLogger(__name__)
 
 GALLONS_TO_KG = 3.04
 GALLONS_TO_LITERS = 3.78541
@@ -21,7 +24,7 @@ def get_avg_fuel_price() -> Optional[float]:
         cur.execute(sql)
         if cur.rowcount > 0:
             cost = cur.fetchone()["cost"]
-            print(f"AVG fuel cost per gallon is ${cost}")
+            logger.info("AVG fuel cost per gallon is $%s", cost)
             return cost
     return None
 
@@ -40,7 +43,7 @@ def fuel_calculation(aircraft_icao_type: str, minutes: float) -> Optional[dict]:
     with db.cursor() as cur:
         cur.execute(sql, (aircraft_icao_type,))
         if cur.rowcount == 0:
-            print("Can't calculate fuel info: unknown aircraft ICAO type")
+            logger.warning("Can't calculate fuel info: unknown aircraft ICAO type %s", aircraft_icao_type)
             return None
         galph = cur.fetchone()["galph"]
     avg_fuel_price_per_gallon = get_avg_fuel_price()
