@@ -31,16 +31,16 @@ while True:
         # Re-fetch watched aircraft every loop in case accounts are added/removed.
         cur.execute("""
             SELECT a.reg, COALESCE(f_max.id, -1) AS latest_flight_id,
-                   ta."@" AS handle, ta.disabled AS account_disabled, tck.disabled AS app_disabled
+                   xa."@" AS handle, xa.disabled AS account_disabled, xck.disabled AS app_disabled
             FROM "plane-notify".aircraft a
-            JOIN "plane-notify".x_accounts ta ON a.x_acc_id = ta.id
-            JOIN "plane-notify".x_consumer_keys tck ON ta.api_id = tck.id
+            JOIN "plane-notify".x_accounts xa ON a.x_acc_id = xa.id
+            JOIN "plane-notify".x_consumer_keys xck ON xa.api_id = xck.id
             JOIN (
                 SELECT reg, MAX(id) AS id
                 FROM "plane-notify".flights
                 GROUP BY reg
             ) f_max ON a.reg = f_max.reg
-            WHERE ta.delay IS TRUE;
+            WHERE xa.delay IS TRUE;
         """)
         results = cur.fetchall()
         current_regs = []
@@ -91,16 +91,16 @@ while True:
             )
 
             sql = """
-                SELECT ta."@", tck."key", tck.secret, ta.access_token, ta.access_token_secret,
-                       ta.disabled AS account_disabled, tck.disabled AS app_disabled
-                FROM "plane-notify".x_accounts ta,
-                     "plane-notify".x_consumer_keys tck,
+                SELECT xa."@", xck."key", xck.secret, xa.access_token, xa.access_token_secret,
+                       xa.disabled AS account_disabled, xck.disabled AS app_disabled
+                FROM "plane-notify".x_accounts xa,
+                     "plane-notify".x_consumer_keys xck,
                      "plane-notify".aircraft a
-                WHERE ta.id = a.x_acc_id
+                WHERE xa.id = a.x_acc_id
                 AND a.reg = %(reg)s
-                AND ta.api_id = tck.id
-                AND ta.disabled IS FALSE
-                AND tck.disabled IS FALSE
+                AND xa.api_id = xck.id
+                AND xa.disabled IS FALSE
+                AND xck.disabled IS FALSE
             """
             cur.execute(sql, {"reg": reg})
             x_details = cur.fetchone()
