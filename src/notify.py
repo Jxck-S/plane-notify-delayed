@@ -85,15 +85,17 @@ def notify(
 
     logger.info(message)
 
-    if x_details:
-        logger.info("Posting flight to @%s", x_details["@"])
-        try:
+    try:
+        if x_details and not (x_details["access_token"] and x_details["access_token_secret"]):
+            logger.warning(
+                "Skipping post to @%s: access_token/access_token_secret missing", x_details["@"]
+            )
+        elif x_details:
+            logger.info("Posting flight to @%s", x_details["@"])
             alt_text = f"Reg: {flight['reg']} Flight Map"
             media_id = x_client.upload_media(x_details, flight_map_image_name, alt_text)
             post_id = x_client.create_post(x_details, message, media_ids=[media_id])
             if second_message:
                 x_client.create_post(x_details, second_message, in_reply_to_post_id=post_id)
-        finally:
-            os.remove(flight_map_image_name)
-    else:
+    finally:
         os.remove(flight_map_image_name)

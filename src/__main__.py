@@ -38,7 +38,8 @@ while True:
                 FROM "plane-notify".flights
                 GROUP BY reg
             ) f_max ON a.reg = f_max.reg
-            WHERE ta.delay IS TRUE;
+            WHERE ta.delay IS TRUE
+            AND ta.disabled IS FALSE;
         """)
         results = cur.fetchall()
         current_regs = []
@@ -85,6 +86,7 @@ while True:
                 WHERE ta.id = a.x_acc_id
                 AND a.reg = %(reg)s
                 AND ta.api_id = tck.id
+                AND ta.disabled IS FALSE
             """
             cur.execute(sql, {"reg": reg})
             x_details = cur.fetchone()
