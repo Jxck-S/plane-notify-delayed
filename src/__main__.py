@@ -30,20 +30,32 @@ while True:
     with db.cursor() as cur:
         # Re-fetch watched aircraft every loop in case accounts are added/removed.
         cur.execute("""
-            SELECT a.reg, COALESCE(f_max.id, -1) AS latest_flight_id
+            SELECT a.reg, COALESCE(f_max.id, -1) AS latest_flight_id,
+                   ta."@" AS handle, ta.disabled AS account_disabled, tck.disabled AS app_disabled
             FROM "plane-notify".aircraft a
             JOIN "plane-notify".x_accounts ta ON a.x_acc_id = ta.id
+            JOIN "plane-notify".x_consumer_keys tck ON ta.api_id = tck.id
             JOIN (
                 SELECT reg, MAX(id) AS id
                 FROM "plane-notify".flights
                 GROUP BY reg
             ) f_max ON a.reg = f_max.reg
-            WHERE ta.delay IS TRUE
-            AND ta.disabled IS FALSE;
+            WHERE ta.delay IS TRUE;
         """)
         results = cur.fetchall()
         current_regs = []
         for result in results:
+            if result["account_disabled"]:
+                logger.info(
+                    "Skipping %s: account @%s is disabled", result["reg"], result["handle"]
+                )
+                continue
+            if result["app_disabled"]:
+                logger.info(
+                    "Skipping %s: app for @%s is disabled", result["reg"], result["handle"]
+                )
+                continue
+
             if result["reg"] not in latest_flights or not latest_flights[result["reg"]]:
                 latest_flights[result["reg"]] = result["latest_flight_id"]
             current_regs.append(result["reg"])
@@ -79,7 +91,8 @@ while True:
             )
 
             sql = """
-                SELECT ta."@", tck."key", tck.secret, ta.access_token, ta.access_token_secret
+                SELECT ta."@", tck."key", tck.secret, ta.access_token, ta.access_token_secret,
+                       ta.disabled AS account_disabled, tck.disabled AS app_disabled
                 FROM "plane-notify".x_accounts ta,
                      "plane-notify".x_consumer_keys tck,
                      "plane-notify".aircraft a
@@ -87,6 +100,7 @@ while True:
                 AND a.reg = %(reg)s
                 AND ta.api_id = tck.id
                 AND ta.disabled IS FALSE
+                AND tck.disabled IS FALSE
             """
             cur.execute(sql, {"reg": reg})
             x_details = cur.fetchone()

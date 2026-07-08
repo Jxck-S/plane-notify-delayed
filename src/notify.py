@@ -86,7 +86,11 @@ def notify(
     logger.info(message)
 
     try:
-        if x_details and not (x_details["access_token"] and x_details["access_token_secret"]):
+        if x_details and x_details.get("account_disabled"):
+            logger.warning("Skipping post to @%s: account is disabled", x_details["@"])
+        elif x_details and x_details.get("app_disabled"):
+            logger.warning("Skipping post to @%s: app is disabled", x_details["@"])
+        elif x_details and not (x_details["access_token"] and x_details["access_token_secret"]):
             logger.warning(
                 "Skipping post to @%s: access_token/access_token_secret missing", x_details["@"]
             )

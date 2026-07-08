@@ -35,7 +35,8 @@ def main() -> None:
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute(
         """
-        SELECT xa.id, xa."@", xa.api_id, xa.disabled, xck."key", xck.secret,
+        SELECT xa.id, xa."@", xa.api_id, xa.disabled AS account_disabled,
+               xck.app_owner, xck.disabled AS app_disabled, xck."key", xck.secret,
                xa.access_token, xa.access_token_secret
         FROM "plane-notify".x_accounts xa
         JOIN "plane-notify".x_consumer_keys xck ON xa.api_id = xck.id
@@ -46,15 +47,18 @@ def main() -> None:
     conn.close()
 
     for row in rows:
-        if row["disabled"]:
-            print(f"[SKIPPED] id={row['id']} @{row['@']} (api_id={row['api_id']}): disabled")
+        label = f"id={row['id']} @{row['@']} (api_id={row['api_id']}, app_owner={row['app_owner']})"
+
+        if row["account_disabled"]:
+            print(f"[SKIPPED] {label}: account is disabled")
+            continue
+
+        if row["app_disabled"]:
+            print(f"[SKIPPED] {label}: app is disabled")
             continue
 
         if not (row["access_token"] and row["access_token_secret"]):
-            print(
-                f"[FAIL] id={row['id']} @{row['@']} (api_id={row['api_id']}): "
-                "access_token/access_token_secret missing but account is not disabled"
-            )
+            print(f"[FAIL] {label}: access_token/access_token_secret missing but account is not disabled")
             continue
 
         auth = OAuth1(
@@ -65,7 +69,7 @@ def main() -> None:
         )
         resp = requests.get(USERS_ME_URL, auth=auth, timeout=REQUEST_TIMEOUT)
         status = "OK" if resp.status_code == 200 else "FAIL"
-        print(f"[{status}] id={row['id']} @{row['@']} (api_id={row['api_id']}): {resp.status_code} {resp.text[:150]}")
+        print(f"[{status}] {label}: {resp.status_code} {resp.text[:150]}")
 
 
 if __name__ == "__main__":
