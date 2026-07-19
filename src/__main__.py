@@ -92,7 +92,13 @@ while True:
 
             sql = """
                 SELECT xa."@", xck."key", xck.secret, xa.access_token, xa.access_token_secret,
-                       xa.disabled AS account_disabled, xck.disabled AS app_disabled
+                       xa.disabled AS account_disabled, xck.disabled AS app_disabled,
+                       a.title,
+                       (
+                           SELECT COUNT(*)
+                           FROM "plane-notify".aircraft a2
+                           WHERE a2.x_acc_id = xa.id
+                       ) AS fleet_size
                 FROM "plane-notify".x_accounts xa,
                      "plane-notify".x_consumer_keys xck,
                      "plane-notify".aircraft a
