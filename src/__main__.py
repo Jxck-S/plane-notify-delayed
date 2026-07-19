@@ -70,7 +70,7 @@ while True:
         for reg, latest_id in list(latest_flights.items()):
             sql = """
                 SELECT
-                    f.id, f.callsign, f.origin, f.takeoff_confirmed,
+                    f.id, f.icao, f.callsign, f.origin, f.takeoff_confirmed,
                     f.destination, f.landing_confirmed, f.takeoff_time, f.landing_time
                 FROM "plane-notify".flights f
                 WHERE f.id > %(latest_id)s
