@@ -27,7 +27,8 @@ def notify(
         flight: Flight data dictionary.
         origin_airport: Origin airport details from get_airport_by_icao().
         destination_airport: Destination airport details from get_airport_by_icao().
-        x_details: X API credentials dict, or None to skip posting.
+        x_details: X API credentials dict, also carrying the aircraft title and the
+            account's fleet_size, or None to skip posting.
         hours_since: Hours since the flight landed, used for message wording.
     """
     origin_coords = (origin_airport["lat"], origin_airport["lon"])
@@ -81,7 +82,17 @@ def notify(
         "24 hours ago" if hours_since is not None and hours_since <= 24
         else f"on {flight['landing_time'].strftime('%-m/%-d')}"
     )
-    message = f"Flew from {origin_location} to {destination_location} {time_ago_wording}.\n{landed_time_msg}"
+    # Accounts tracking a single aircraft don't need the title for disambiguation.
+    title = x_details.get("title") if x_details else None
+    if title and x_details.get("fleet_size", 0) > 1:
+        flew_clause = f"{title} flew from"
+    else:
+        flew_clause = "Flew from"
+
+    message = (
+        f"{flew_clause} {origin_location} to {destination_location} {time_ago_wording}."
+        f"\n{landed_time_msg}"
+    )
 
     logger.info(message)
 
