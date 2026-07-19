@@ -107,7 +107,20 @@ def notify(
             )
         elif x_details:
             logger.info("Posting flight to @%s", x_details["@"])
-            alt_text = f"Reg: {flight['reg']} Flight Map"
+            # Identifiers go last so screen readers lead with the picture, not metadata.
+            identifiers = [f"Reg: {flight['reg']}"]
+            if flight["icao"]:
+                identifiers.append(f"ICAO: {flight['icao']}")
+            if flight["callsign"]:
+                identifiers.append(f"Callsign: {flight['callsign']}")
+            identifiers.append(f"Origin: {flight['origin']}")
+            identifiers.append(f"Destination: {flight['destination']}")
+            alt_text = (
+                f"Map showing a blue line from {origin_location} to"
+                f" {destination_location}, with an aircraft icon at the destination.\n"
+                "Aircraft and flight info:\n"
+                + " ".join(identifiers)
+            )
             media_id = x_client.upload_media(x_details, flight_map_image_name, alt_text)
             post_id = x_client.create_post(x_details, message, media_ids=[media_id])
             if second_message:
