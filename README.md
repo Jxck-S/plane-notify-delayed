@@ -8,7 +8,7 @@ Connects to the PostgreSQL database used by plane-notify, watches for aircraft t
 
 ## Requirements
 
-- Python 3.13+
+- Python 3.14+
 - PostgreSQL database populated by [plane-notify](https://github.com/Jxck-S/plane-notify)
 - `flight_static_maps` (private local dependency — must be present at project root)
 - Dependencies via Pipfile: `pipenv install`
