@@ -4,7 +4,7 @@ import logging
 import time
 
 from . import db
-from .airport import get_airport_by_icao
+from .airport import get_airport_by_code
 from .logging_config import configure_logging
 from .notify import notify
 
@@ -130,9 +130,32 @@ while True:
                     new_flight["id"], new_flight["origin"], new_flight["destination"],
                     hours, minutes,
                 )
-                origin_airport = get_airport_by_icao(new_flight["origin"])
-                destination_airport = get_airport_by_icao(new_flight["destination"])
-                notify(new_flight, origin_airport, destination_airport, x_details, hours)
+                # Upstream leaves origin/destination blank when it can't resolve an
+                # end of the flight, and a code it did resolve may still be missing
+                # from OurAirports. Either way, don't post a half-known route, but
+                # still advance the watermark so the flight isn't reconsidered every
+                # check.
+                unresolved = []
+                airports = {}
+                for end in ("origin", "destination"):
+                    code = new_flight[end]
+                    if not code:
+                        unresolved.append(f"{end} missing upstream")
+                        continue
+                    airports[end] = get_airport_by_code(code)
+                    if airports[end] is None:
+                        unresolved.append(f"{end} {code} not in OurAirports")
+
+                if unresolved:
+                    logger.warning(
+                        "Skipping %s for %s: %s",
+                        new_flight["id"], reg, " and ".join(unresolved),
+                    )
+                else:
+                    notify(
+                        new_flight, airports["origin"], airports["destination"],
+                        x_details, hours,
+                    )
                 latest_flights[reg] = new_flight["id"]
 
     check_count += 1
