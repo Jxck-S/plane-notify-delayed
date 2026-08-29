@@ -6,6 +6,7 @@ from geopy.distance import geodesic
 
 from . import config, x_client
 from .aircraft_type import get_ac_type
+from .airport import airport_code
 from .flight_map import create_flight_map
 from .fuel_calc import fuel_calculation, fuel_message
 
@@ -25,8 +26,8 @@ def notify(
 
     Args:
         flight: Flight data dictionary.
-        origin_airport: Origin airport details from get_airport_by_icao().
-        destination_airport: Destination airport details from get_airport_by_icao().
+        origin_airport: Origin airport details from get_airport_by_code().
+        destination_airport: Destination airport details from get_airport_by_code().
         x_details: X API credentials dict, also carrying the aircraft title and the
             account's fleet_size, or None to skip posting.
         hours_since: Hours since the flight landed, used for message wording.
@@ -53,8 +54,10 @@ def notify(
     if flight["origin"] != flight["destination"]:
         distance_mi = float(geodesic(origin_coords, destination_coords).mi)
         distance_nm = distance_mi / MI_TO_NM
-        origin_code = origin_airport["iata_code"] or origin_airport["ident"]
-        dest_code = destination_airport["iata_code"] or destination_airport["ident"]
+        # Airports with no published code fall back to their municipality: the
+        # OurAirports ident is a generated placeholder ("US-1234") for those.
+        origin_code = airport_code(origin_airport) or origin_airport["municipality"]
+        dest_code = airport_code(destination_airport) or destination_airport["municipality"]
         second_message = (
             f"{'{:,}'.format(round(distance_mi))} mile"
             f" ({'{:,}'.format(round(distance_nm))} NM)"

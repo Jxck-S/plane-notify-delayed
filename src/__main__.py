@@ -4,7 +4,7 @@ import logging
 import time
 
 from . import db
-from .airport import get_airport_by_icao
+from .airport import get_airport_by_code
 from .logging_config import configure_logging
 from .notify import notify
 
@@ -142,7 +142,7 @@ while True:
                     if not code:
                         unresolved.append(f"{end} missing upstream")
                         continue
-                    airports[end] = get_airport_by_icao(code)
+                    airports[end] = get_airport_by_code(code)
                     if airports[end] is None:
                         unresolved.append(f"{end} {code} not in OurAirports")
 
