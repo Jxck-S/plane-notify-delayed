@@ -11,8 +11,13 @@ def get_airport_by_icao(icao: str) -> Optional[dict]:
 
     Returns:
         Dict with airport data (with 'icao' key instead of 'gps_code'),
-        or None if not found.
+        or None if not found or the code is blank.
     """
+    # OurAirports stores an empty string, not NULL, for airports with no GPS
+    # code (~41k rows), so a blank lookup would otherwise match an arbitrary
+    # one of them rather than returning nothing.
+    if not icao:
+        return None
     sql = """
         SELECT
             oaa.ident, oaa.type, oaa.name, oaa.lat, oaa.lon, oaa.elev,
@@ -20,7 +25,7 @@ def get_airport_by_icao(icao: str) -> Optional[dict]:
             oaa.gps_code, oaa.iata_code, oaa.local_code,
             oar.name AS region
         FROM deps.our_airports_airports oaa, deps.our_airports_regions oar
-        WHERE oaa.gps_code = %s AND oaa.iso_region = oar.code
+        WHERE oaa.gps_code = %s AND oaa.gps_code <> '' AND oaa.iso_region = oar.code
         LIMIT 1;
     """
     with db.cursor() as cur:
