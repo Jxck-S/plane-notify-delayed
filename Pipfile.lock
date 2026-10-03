@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "099beb6886fdb8d030b52631d0cdf429f04b2dabab9d3716bf295cdb2232d2c7"
+            "sha256": "86e7039d4c4932b983e56a16f90500ca50bba3b61ad6da7e2ab8b045f3f49e08"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -317,11 +317,12 @@
         },
         "oauthlib": {
             "hashes": [
-                "sha256:0f0f8aa759826a193cf66c12ea1af1637f87b9b4622d46e866952bb022e538c9",
-                "sha256:88119c938d2b8fb88561af5f6ee0eec8cc8d552b7bb1f712743136eb7523b7a1"
+                "sha256:624c28c13a0a59cabf9747dfa52af63be3e512a7f2714df16e91b5b3a145e6cd",
+                "sha256:efb274799819440f95b4ab3b818869f1ce9ae26c5beacba0201d1a1b76b54f86"
             ],
-            "markers": "python_version >= '3.8'",
-            "version": "==3.3.1"
+            "index": "pypi",
+            "markers": "python_version >= '3.9'",
+            "version": "==4.0.0"
         },
         "pillow": {
             "hashes": [
@@ -504,12 +505,6 @@
             ],
             "version": "==0.2.5"
         },
-        "slugify": {
-            "hashes": [
-                "sha256:c5703cc11c1a6947536f3ce8bb306766b8bb5a84a53717f5a703ce0f18235e4c"
-            ],
-            "version": "==0.0.1"
-        },
         "svgwrite": {
             "hashes": [
                 "sha256:a8fbdfd4443302a6619a7f76bc937fc683daf2628d9b737c891ec08b8ce524c3",
@@ -535,11 +530,12 @@
         },
         "urllib3": {
             "hashes": [
-                "sha256:231e0ec3b63ceb14667c67be60f2f2c40a518cb38b03af60abc813da26505f4c",
-                "sha256:9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897"
+                "sha256:0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3",
+                "sha256:63bf2ead4c879426ebf22ef2a781eeb4aa3b4ae798a0435506f8687fd5bb9b63"
             ],
+            "index": "pypi",
             "markers": "python_version >= '3.10'",
-            "version": "==2.7.0"
+            "version": "==2.8.0"
         }
     },
     "develop": {}

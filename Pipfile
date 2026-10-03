@@ -12,6 +12,8 @@ pytz = "*"
 py-staticmaps = {git = "https://github.com/Jxck-S/py-staticmaps.git"}
 pycairo = "*"
 numpy = "*"
+urllib3 = "*"
+oauthlib = "*"
 
 [dev-packages]
 
